@@ -1,0 +1,62 @@
+#!/bin/bash
+
+if [ "$1" = "install" ] ; then
+    file=$(zenity --file-selection --title "LAPPM - select app package to install" --file-filter='*.app.tar.gz')
+    if [ "$?" != "0" ]; then
+        exit 1
+    fi
+    sudo tar -zxvf "$file" -C /tmp
+    cd /tmp || exit
+    appname=$(find -type d -name "*.app")
+    echo "$appname"
+    cd "$appname" || exit
+    echo "[]: Creating app directory"
+    sudo mkdir -p "/usr/apps/$appname"
+    echo "[]: Copying app files"
+    sudo rsync -av . "/usr/apps/$appname"
+    if [ -d "/usr/apps/$appname/other" ]; then
+        echo "[]: Copying other files"
+        cd "/usr/apps/$appname/other" || exit
+        sudo rsync -av . /
+        cd "/usr/apps/$appname" || exit
+    fi
+    echo "[]: Copyied all files"
+    sudo ln -s "/usr/apps/$appname/desktop/$appname.desktop" /usr/share/applications/
+    echo "[]: Created desktop symlink"
+    echo "[]: Cleaning up"
+    rm -rf /tmp/$appname
+    echo '[]: Successfully installed' "$appname"
+    cd "$HOME" || exit
+
+elif [ "$1" = "apps" ] ; then
+	ls /usr/apps
+elif [ "$1" = "remove" ] && [ -n "$2" ]; then
+	if [ "$2" = "$(sudo find /usr/apps/ -type d -name "$2" -exec basename {} \;
+)" ]; then
+	    sudo rm -rf "/usr/apps/$2"
+	    sudo rm -rf "/usr/share/applications/$2.desktop"
+	    cd $HOME/.config
+	    sudo rm -r "${2%.app}"
+	    cd $HOME
+	    echo "Successfully removed $2"
+	else
+		echo "there is no such app as" $2
+	fi
+elif [ "$1" = "abs" ] ; then
+	echo "LAPPM app package build structure"
+	echo "appname.app.tar.gz"
+	echo "	appname.app"
+	echo "		app"
+	echo "			<all of the app files with executable file>"
+	echo "		desktop"
+	echo "			appname.app.desktop - menu shortcut"
+	echo "		other (optional)"
+	echo "			<all the additional files witch are copied to / directory>"
+else
+	echo "LAPPM - Linux APP Manager"
+  echo "Usage:"
+	echo "lappm install - installs app from selected app package in popup"
+	echo "lappm remove <appname.app> - removes app from disc"
+	echo "lappm apps - shows installed apps"
+	echo "lappm abs - shows app build structure (how to build an app)"
+fi
