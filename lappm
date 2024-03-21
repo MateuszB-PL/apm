@@ -1,7 +1,8 @@
 #!/bin/bash
 
 if [ "$1" = "install" ] ; then
-    file=$(zenity --file-selection --title "LAPPM - select app package to install" --file-filter='*.app.tar.gz')
+    #file=$(zenity --file-selection --title "LAPPM - select app package to install" --file-filter='*.app.tar.gz')
+    file=$2
     if [ "$?" != "0" ]; then
         exit 1
     fi
