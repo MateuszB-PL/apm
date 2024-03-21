@@ -3,9 +3,9 @@
 if [ "$1" = "install" ] ; then
     #file=$(zenity --file-selection --title "LAPPM - select app package to install" --file-filter='*.app.tar.gz')
     file=$2
-    if [ "$?" != "0" ]; then
-        exit 1
-    fi
+    #if [ "$?" != "0" ]; then
+    #    exit 1
+    #fi
     sudo tar -zxvf "$file" -C /tmp
     cd /tmp || exit
     appname=$(find -type d -name "*.app")
@@ -17,7 +17,7 @@ if [ "$1" = "install" ] ; then
     sudo rsync -av . "/usr/apps/$appname"
     if [ -d "/usr/apps/$appname/other" ]; then
         echo "[]: Copying other files"
-        cd "/usr/apps/$appname/other" || exit
+        cd "/usr/apps/$appname/root" || exit
         sudo rsync -av . /
         cd "/usr/apps/$appname" || exit
     fi
@@ -51,12 +51,12 @@ elif [ "$1" = "abs" ] ; then
 	echo "			<all of the app files with executable file>"
 	echo "		desktop"
 	echo "			appname.app.desktop - menu shortcut"
-	echo "		other (optional)"
+	echo "		root (optional)"
 	echo "			<all the additional files witch are copied to / directory>"
 else
 	echo "LAPPM - Linux APP Manager"
   echo "Usage:"
-	echo "lappm install - installs app from selected app package in popup"
+	echo "lappm install <appname.app.tar.gz> - installs app from selected app package in popup"
 	echo "lappm remove <appname.app> - removes app from disc"
 	echo "lappm apps - shows installed apps"
 	echo "lappm abs - shows app build structure (how to build an app)"
