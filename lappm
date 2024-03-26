@@ -8,7 +8,7 @@ if [ "$1" = "install" ] ; then
     #fi
     sudo tar -zxvf "$file" -C /tmp
     cd /tmp || exit
-    appname=$(find -type d -name "*.app")
+    appname=$(sudo find -type d -name "*.app")
     echo "$appname"
     cd "$appname" || exit
     echo "[]: Creating app directory"
