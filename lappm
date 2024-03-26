@@ -14,15 +14,15 @@ if [ "$1" = "install" ] ; then
     echo "[]: Creating app directory"
     sudo mkdir -p "/usr/apps/$appname"
     echo "[]: Copying app files"
-    sudo rsync -av . "/usr/apps/$appname"
-    if [ -d "/usr/apps/$appname/other" ]; then
+    sudo cp -rf . "/usr/apps/$appname"
+    if [ -d "/usr/apps/$appname/root" ]; then
         echo "[]: Copying other files"
         cd "/usr/apps/$appname/root" || exit
-        sudo rsync -av . /
+        sudo cp -rf . /
         cd "/usr/apps/$appname" || exit
     fi
     echo "[]: Copyied all files"
-    sudo ln -s "/usr/apps/$appname/desktop/$appname.desktop" /usr/share/applications/
+    sudo ln -sf "/usr/apps/$appname/desktop/$appname.desktop" /usr/share/applications/
     echo "[]: Created desktop symlink"
     echo "[]: Cleaning up"
     rm -rf /tmp/$appname
