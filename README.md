@@ -12,3 +12,4 @@ To install copy to /bin and create /usr/apps directory
 
 `apm abs` - shows app build structure
 
+![linux](https://github.com/MateuszB-PL/apm/assets/99821157/e18f3cc0-1f96-4f81-9e30-12ef55fb566c)
