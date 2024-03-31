@@ -1,14 +1,14 @@
 # lappm
-Linux App Manager
+App Package Manager - only for Linux
 ---
 To install copy to /bin and create /usr/apps directory
 ---
 # usage
-`lappm install <pkg name.app.tar.gz>` - installs app
+`apm install <pkg name.app.tar.gz>` - installs app
 
-`lappm sync <http/s://repo.domain/appname.app.tar.gz>` - installs app from repo (with wget)
+`apm sync <http/s://repo.domain/appname.app.tar.gz>` - installs app from repo (with wget)
 
-`lappm uninstall <pkg name.app>` - removes app
+`apm uninstall <pkg name.app>` - removes app
 
-`lappm abs` - shows app build structure
+`apm abs` - shows app build structure
 
