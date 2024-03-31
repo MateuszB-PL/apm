@@ -1,8 +1,7 @@
-# lappm
+# APM
 App Package Manager - only for Linux
 ---
 To install copy to /bin and create /usr/apps directory
----
 # usage
 `apm install <pkg name.app.tar.gz>` - installs app
 
