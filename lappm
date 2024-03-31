@@ -1,11 +1,8 @@
-#!/bin/bash
+#!/usr/bin/bash
 
-if [ "$1" = "install" ] ; then
+install () {
     #file=$(zenity --file-selection --title "LAPPM - select app package to install" --file-filter='*.app.tar.gz')
-    file=$2
-    #if [ "$?" != "0" ]; then
-    #    exit 1
-    #fi
+    file=$1
     sudo tar -zxvf "$file" -C /tmp
     cd /tmp || exit
     appname=$(sudo find -type d -name "*.app")
@@ -18,28 +15,63 @@ if [ "$1" = "install" ] ; then
     if [ -d "/usr/apps/$appname/root" ]; then
         echo "[]: Copying other files"
         cd "/usr/apps/$appname/root" || exit
-        sudo cp -rf . /
+        find . -type f -exec sudo ln -sf "$(pwd)/{}" "/{}" \;
         cd "/usr/apps/$appname" || exit
     fi
     echo "[]: Copyied all files"
-    sudo ln -sf "/usr/apps/$appname/desktop/$appname.desktop" /usr/share/applications/
+    if [ -d "/usr/apps/$appname/desktop" ]; then
+        for file in /usr/apps/$appname/desktop/*.desktop; do
+            sudo ln -sf "$file" "/usr/share/applications/$(basename "$file")"
+        done
+    fi
     echo "[]: Created desktop symlink"
     echo "[]: Cleaning up"
     rm -rf /tmp/$appname
     echo '[]: Successfully installed' "$appname"
     cd "$HOME" || exit
+}
+usage () {
+    echo "LAPPM - Linux APP Manager"
+    echo "Usage:"
+	echo "lappm install <appname.app.tar.gz> - installs app from hard drive"
+    echo "lappm sync <http/s://repo.domain/appname.app.tar.gz> - installs app from repo (with wget)"
+	echo "lappm remove <appname.app> - removes app from disc"
+	echo "lappm apps - shows installed apps"
+	echo "lappm abs - shows app build structure (how to build an app)"
+}
 
+if [ "$1" = "install" ] ; then
+    if [ -z "$2" ]; then
+        usage
+        exit 1
+    fi
+    install $2
+elif [ "$1" = "sync" ] ; then
+    if [ -z "$2" ]; then
+        usage
+        exit 1
+    fi
+    sudo mkdir /tmp/lappmpkg
+    sudo wget $2 -P /tmp/lappmpkg/
+    cd /tmp/lappmpkg
+    pkgname=$(sudo find -type f -name "*.app.tar.gz")
+    install "/tmp/lappmpkg/$pkgname"
+    sudo rm -rf /tmp/lappmpkg
 elif [ "$1" = "apps" ] ; then
 	ls /usr/apps
 elif [ "$1" = "remove" ] && [ -n "$2" ]; then
+    if [ -z "$2" ]; then
+        usage
+        exit 1
+    fi
 	if [ "$2" = "$(sudo find /usr/apps/ -type d -name "$2" -exec basename {} \;
 )" ]; then
 	    sudo rm -rf "/usr/apps/$2"
-	    sudo rm -rf "/usr/share/applications/$2.desktop"
+	    sudo rm -rf "/usr/share/applications/${2%.app}.desktop"
 	    cd $HOME/.config
-	    sudo rm -r "${2%.app}"
+	    sudo rm -rf "${2%.app}"
 	    cd $HOME
-	    echo "Successfully removed $2"
+	    echo "Successfully removed $2 / ${2%.app}"
 	else
 		echo "there is no such app as" $2
 	fi
@@ -50,14 +82,9 @@ elif [ "$1" = "abs" ] ; then
 	echo "		app"
 	echo "			<all of the app files with executable file>"
 	echo "		desktop"
-	echo "			appname.app.desktop - menu shortcut"
+	echo "			appname.desktop - menu shortcut"
 	echo "		root (optional)"
 	echo "			<all the additional files witch are copied to / directory>"
 else
-	echo "LAPPM - Linux APP Manager"
-  echo "Usage:"
-	echo "lappm install <appname.app.tar.gz> - installs app from selected app package in popup"
-	echo "lappm remove <appname.app> - removes app from disc"
-	echo "lappm apps - shows installed apps"
-	echo "lappm abs - shows app build structure (how to build an app)"
+	usage
 fi
