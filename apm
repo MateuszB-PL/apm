@@ -1,0 +1,91 @@
+#!/bin/bash
+
+prefix=apm
+
+install () {
+    file=$1
+    sudo tar -zxvf "$file" -C /tmp
+    cd /tmp || exit
+    appname=$(sudo find -type d -name "*.app")
+    echo "$appname"
+    cd "$appname" || exit
+    echo "[]: Creating app directory"
+    sudo mkdir -p "/usr/apps/$appname"
+    echo "[]: Copying app files"
+    sudo cp -rf . "/usr/apps/$appname"
+    if [ -d "/usr/apps/$appname/root" ]; then
+        echo "[]: Copying other files"
+        cd "/usr/apps/$appname/root" || exit
+        find . -type f -exec sudo ln -sf "$(pwd)/{}" "/{}" \;
+        cd "/usr/apps/$appname" || exit
+    fi
+    echo "[]: Copyied all files"
+    if [ -d "/usr/apps/$appname/desktop" ]; then
+        for file in /usr/apps/$appname/desktop/*.desktop; do
+            sudo ln -sf "$file" "/usr/share/applications/$(basename "$file")"
+        done
+    fi
+    echo "[]: Created desktop symlink"
+    echo "[]: Cleaning up"
+    rm -rf /tmp/$appname
+    echo '[]: Successfully installed' "$appname"
+    cd "$HOME" || exit
+}
+usage () {
+    echo "APM - app package manager"
+    echo "Usage:"
+	echo "$prefix install <appname.app.tar.gz> - installs app from hard drive"
+    echo "$prefix sync <http/s://repo.domain/appname.app.tar.gz> - installs app from repo (with wget)"
+	echo "$prefix remove <appname.app> - removes app from disc"
+	echo "$prefix apps - shows installed apps"
+	echo "$prefix abs - shows app build structure (how to build an app)"
+}
+
+if [ "$1" = "install" ] ; then
+    if [ -z "$2" ]; then
+        usage
+        exit 1
+    fi
+    install $2
+elif [ "$1" = "sync" ] ; then
+    if [ -z "$2" ]; then
+        usage
+        exit 1
+    fi
+    sudo mkdir /tmp/apppkg
+    sudo wget $2 -P /tmp/apppkg/
+    cd /tmp/apppkg
+    pkgname=$(sudo find -type f -name "*.app.tar.gz")
+    install "/tmp/apppkg/$pkgname"
+    sudo rm -rf /tmp/apppkg
+elif [ "$1" = "apps" ] ; then
+	ls /usr/apps
+elif [ "$1" = "remove" ] && [ -n "$2" ]; then
+    if [ -z "$2" ]; then
+        usage
+        exit 1
+    fi
+	if [ "$2" = "$(sudo find /usr/apps/ -type d -name "$2" -exec basename {} \;
+)" ]; then
+	    sudo rm -rf "/usr/apps/$2"
+	    sudo rm -rf "/usr/share/applications/${2%.app}.desktop"
+	    cd $HOME/.config
+	    sudo rm -rf "${2%.app}"
+	    cd $HOME
+	    echo "Successfully removed $2 / ${2%.app}"
+	else
+		echo "there is no such app as" $2
+	fi
+elif [ "$1" = "abs" ] ; then
+	echo "APM - app package build structure"
+	echo "appname.app.tar.gz"
+	echo "	appname.app"
+	echo "		app"
+	echo "			<all of the app files with executable file>"
+	echo "		desktop"
+	echo "			appname.desktop - menu shortcut"
+	echo "		root (optional)"
+	echo "			<all the additional files witch are copied to / directory>"
+else
+	usage
+fi
