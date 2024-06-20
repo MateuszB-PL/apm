@@ -1,3 +1,4 @@
+# This repository is no longer supported! New repository: https://github.com/MateuszB-PL/apmcpp
 # APM
 App Package Manager - only for Linux
 ---
